@@ -1,8 +1,8 @@
 #include "CommandImpl/PlayCommand.h"
 
-PlayCommand::PlayCommand(IAppControls& controls): m_controls(controls){}
+PlayCommand::PlayCommand(IAppControls& controls): controls_(controls){}
 
 void PlayCommand::execute()
 {
-    m_controls.play();
+    controls_.play();
 }

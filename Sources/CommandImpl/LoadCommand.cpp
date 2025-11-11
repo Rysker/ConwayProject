@@ -1,8 +1,8 @@
 #include "CommandImpl/LoadCommand.h"
 
-LoadCommand::LoadCommand(IAppControls& controls, const char* buffer): m_controls(controls), m_filenameBuffer(buffer){}
+LoadCommand::LoadCommand(IAppControls& controls, const char* buffer): controls_(controls), filenameBuffer_(buffer){}
 
 void LoadCommand::execute()
 {
-    m_controls.loadState(m_filenameBuffer);
+    controls_.loadState(filenameBuffer_);
 }

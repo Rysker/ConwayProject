@@ -1,21 +1,22 @@
-#include "SequentialGame.h"
+#include "OpenMPGame.h"
 #include <fstream>
 #include <iostream>
 
-SequentialGame::SequentialGame(int width, int height): width_(width), height_(height)
+OpenMPGame::OpenMPGame(int width, int height): width_(width), height_(height)
 {
     currentBuffer_.resize(width * height, 0);
     nextBuffer_.resize(width * height, 0);
 }
 
-void SequentialGame::step()
+void OpenMPGame::step()
 {
     calculateNextGeneration();
     swapBuffers();
 }
 
-void SequentialGame::calculateNextGeneration()
+void OpenMPGame::calculateNextGeneration()
 {
+    #pragma omp parallel for collapse(2)
     for (int y = 0; y < height_; y++)
     {
         for (int x = 0; x < width_; x++)
@@ -34,17 +35,17 @@ void SequentialGame::calculateNextGeneration()
     }
 }
 
-void SequentialGame::swapBuffers()
+void OpenMPGame::swapBuffers()
 {
     currentBuffer_.swap(nextBuffer_);
 }
 
-int SequentialGame::getCellIndex(int x, int y) const
+int OpenMPGame::getCellIndex(int x, int y) const
 {
     return y * width_ + x;
 }
 
-int SequentialGame::countLiveNeighbors(int x, int y) const
+int OpenMPGame::countLiveNeighbors(int x, int y) const
 {
     int count = 0;
     for (int j = -1; j <= 1; j++)
@@ -64,7 +65,7 @@ int SequentialGame::countLiveNeighbors(int x, int y) const
     return count;
 }
 
-bool SequentialGame::getCellState(int x, int y) const
+bool OpenMPGame::getCellState(int x, int y) const
 {
     if (x < 0 || x >= width_ || y < 0 || y >= height_)
         return false;
@@ -72,7 +73,7 @@ bool SequentialGame::getCellState(int x, int y) const
     return currentBuffer_[getCellIndex(x, y)];
 }
 
-void SequentialGame::setCellState(int x, int y, bool state)
+void OpenMPGame::setCellState(int x, int y, bool state)
 {
     if (x < 0 || x >= width_ || y < 0 || y >= height_)
         return;
@@ -80,20 +81,19 @@ void SequentialGame::setCellState(int x, int y, bool state)
     currentBuffer_[getCellIndex(x, y)] = state ? 1 : 0;
 }
 
-void SequentialGame::clearGrid()
+void OpenMPGame::clearGrid()
 {
     std::fill(currentBuffer_.begin(), currentBuffer_.end(), 0);
     std::fill(nextBuffer_.begin(), nextBuffer_.end(), 0);
 }
 
-bool SequentialGame::saveToFile(const std::string& filename) const
+bool OpenMPGame::saveToFile(const std::string& filename) const
 {
     std::ofstream file(filename);
+
     if (!file.is_open())
-    {
-        std::cerr << "Cant save file!" << filename << std::endl;
         return false;
-    }
+
     for (int y = 0; y < height_; y++)
     {
         for (int x = 0; x < width_; x++)
@@ -103,19 +103,15 @@ bool SequentialGame::saveToFile(const std::string& filename) const
     return true;
 }
 
-bool SequentialGame::loadFromFile(const std::string& filename)
+bool OpenMPGame::loadFromFile(const std::string& filename)
 {
     std::ifstream file(filename);
 
     if (!file.is_open())
-    {
-        std::cerr << "Can't open file" << filename << std::endl;
         return false;
-    }
 
     clearGrid();
     std::string line;
-
     for (int y = 0; y < height_; y++)
     {
         if (!std::getline(file, line))
@@ -126,7 +122,7 @@ bool SequentialGame::loadFromFile(const std::string& filename)
             if (x >= line.length())
                 break;
 
-            if (line[x] == 'O')
+            if (line[x] == 'O' || line[x] == '1')
                 currentBuffer_[getCellIndex(x, y)] = 1;
         }
     }

@@ -4,23 +4,27 @@
 #include "imgui.h"
 #include "AppState.h"
 #include "ICommand.h"
+#include "IAppControls.h"
 #include <map>
 #include <string>
 #include <memory>
+#include <vector>
 
 class GUIPanel
 {
     public:
-        GUIPanel(AppState& state, const char* simName);
+        GUIPanel(AppState& state, IAppControls& appControls);
         void draw(std::map<std::string, std::unique_ptr<ICommand>>& commands);
         char* getFilenameBufferPtr();
 
     private:
-        AppState& m_state;
+        AppState& state_;
+        IAppControls& appControls_;
 
-        const char* m_simName;
-        char m_filenameBuffer[128];
-        float m_menuWidth;
+        int currentImplIndex_;
+        char filenameBuffer_[128];
+        float menuWidth_;
+        std::vector<const char*> implementations_;
 };
 
 #endif //GUIPANEL_H

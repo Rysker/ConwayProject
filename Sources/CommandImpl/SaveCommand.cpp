@@ -1,8 +1,8 @@
 #include "CommandImpl/SaveCommand.h"
 
-SaveCommand::SaveCommand(IAppControls& controls, const char* buffer): m_controls(controls), m_filenameBuffer(buffer){}
+SaveCommand::SaveCommand(IAppControls& controls, const char* buffer): controls_(controls), filenameBuffer_(buffer){}
 
 void SaveCommand::execute()
 {
-    m_controls.saveState(m_filenameBuffer);
+    controls_.saveState(filenameBuffer_);
 }

@@ -9,36 +9,32 @@
 #include "CommandImpl/ClearCommand.h"
 #include "CommandImpl/SaveCommand.h"
 #include "CommandImpl/LoadCommand.h"
+#include "OpenMPGame.h"
 
-Game::Game()
-        : m_gameWidth(800),
-          m_gameHeight(600)
+Game::Game(): gameWidth_(800), gameHeight_(600), gridWidth_(200), gridHeight_(150)
 {
     int menuWidth = 250;
-    int gridWidth = 200;
-    int gridHeight = 150;
 
-    m_window.create(sf::VideoMode({(unsigned int)(m_gameWidth + menuWidth), (unsigned int)m_gameHeight}), "Conway");
-    m_window.setFramerateLimit(60);
+    window_.create(sf::VideoMode({(unsigned int)(gameWidth_ + menuWidth), (unsigned int)gameHeight_}), "Conway");
+    window_.setFramerateLimit(60);
 
-    if (!ImGui::SFML::Init(m_window))
-    {
+    if (!ImGui::SFML::Init(window_))
         throw std::runtime_error("Failed to initialize ImGui-SFML");
-    }
 
-    m_simulation = std::make_unique<SequentialGame>(gridWidth, gridHeight);
-    m_simulation->loadFromFile("glider.txt");
 
-    m_guiPanel = std::make_unique<GUIPanel>(m_appState, m_simulation->getImplementationName());
-    m_gameRenderer = std::make_unique<GameRenderer>(m_window, m_gameWidth, m_gameHeight);
+    guiPanel_ = std::make_unique<GUIPanel>(appState_, *this);
+    gameRenderer_ = std::make_unique<GameRenderer>(window_, gameWidth_, gameHeight_);
+    this->changeImplementation(0);
 
-    char* filenamePtr = m_guiPanel->getFilenameBufferPtr();
+    char* filenamePtr = guiPanel_->getFilenameBufferPtr();
 
-    m_commands["play"] = std::make_unique<PlayCommand>(*this);
-    m_commands["pause"] = std::make_unique<PauseCommand>(*this);
-    m_commands["clear"] = std::make_unique<ClearCommand>(*this);
-    m_commands["save"] = std::make_unique<SaveCommand>(*this, filenamePtr);
-    m_commands["load"] = std::make_unique<LoadCommand>(*this, filenamePtr);
+    commands_["play"] = std::make_unique<PlayCommand>(*this);
+    commands_["pause"] = std::make_unique<PauseCommand>(*this);
+    commands_["clear"] = std::make_unique<ClearCommand>(*this);
+    commands_["save"] = std::make_unique<SaveCommand>(*this, filenamePtr);
+    commands_["load"] = std::make_unique<LoadCommand>(*this, filenamePtr);
+
+    //simulation_->loadFromFile("glider.txt");
 }
 
 Game::~Game()
@@ -48,7 +44,7 @@ Game::~Game()
 
 void Game::run()
 {
-    while (m_window.isOpen())
+    while (window_.isOpen())
     {
         processEvents();
         update();
@@ -58,61 +54,78 @@ void Game::run()
 
 void Game::processEvents()
 {
-    while (const std::optional event = m_window.pollEvent())
+    while (const std::optional event = window_.pollEvent())
     {
-        ImGui::SFML::ProcessEvent(m_window, *event);
+        ImGui::SFML::ProcessEvent(window_, *event);
 
         if (event->is<sf::Event::Closed>())
-            m_window.close();
+            window_.close();
     }
 }
 
 void Game::update()
 {
-    m_gameRenderer->handleInput(*m_simulation, m_appState);
+    gameRenderer_->handleInput(*simulation_, appState_);
 
-    if (!m_appState.isPaused && m_gameClock.getElapsedTime().asSeconds() > m_appState.generationTimeSec)
+    if (!appState_.isPaused && gameClock_.getElapsedTime().asSeconds() > appState_.generationTimeSec)
     {
-        m_simulation->step();
-        m_gameClock.restart();
+        simulation_->step();
+        gameClock_.restart();
     }
 
-    ImGui::SFML::Update(m_window, m_deltaClock.restart());
+    ImGui::SFML::Update(window_, deltaClock_.restart());
 }
 
 void Game::render()
 {
-    m_window.clear(sf::Color::Black);
-    m_gameRenderer->draw(*m_simulation);
-    m_guiPanel->draw(m_commands);
-    ImGui::SFML::Render(m_window);
-    m_window.display();
+    window_.clear(sf::Color::Black);
+    gameRenderer_->draw(*simulation_);
+    guiPanel_->draw(commands_);
+    ImGui::SFML::Render(window_);
+    window_.display();
 }
 
 void Game::play()
 {
-    m_appState.isPaused = false;
-    m_gameClock.restart();
+    appState_.isPaused = false;
+    gameClock_.restart();
 }
 
 void Game::pause()
 {
-    m_appState.isPaused = true;
+    appState_.isPaused = true;
 }
 
 void Game::clearBoard()
 {
-    m_simulation->clearGrid();
-    m_appState.isPaused = true;
+    simulation_->clearGrid();
+    appState_.isPaused = true;
 }
 
 void Game::saveState(const char* filename)
 {
-    m_simulation->saveToFile(filename);
+    simulation_->saveToFile(filename);
 }
 
 void Game::loadState(const char* filename)
 {
-    m_simulation->loadFromFile(filename);
-    m_appState.isPaused = true;
+    simulation_->loadFromFile(filename);
+    appState_.isPaused = true;
+}
+
+void Game::changeImplementation(int implIndex)
+{
+    appState_.isPaused = true;
+    switch (implIndex)
+    {
+        case 0:
+            simulation_ = std::make_unique<SequentialGame>(gridWidth_, gridHeight_);
+            break;
+        case 1:
+            simulation_ = std::make_unique<OpenMPGame>(gridWidth_, gridHeight_);
+            break;
+        default:
+            simulation_ = std::make_unique<SequentialGame>(gridWidth_, gridHeight_);
+            break;
+    }
 }

@@ -1,8 +1,8 @@
 #include "CommandImpl/ClearCommand.h"
 
-ClearCommand::ClearCommand(IAppControls& controls): m_controls(controls){}
+ClearCommand::ClearCommand(IAppControls& controls): controls_(controls){}
 
 void ClearCommand::execute()
 {
-    m_controls.clearBoard();
+    controls_.clearBoard();
 }

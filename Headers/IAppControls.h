@@ -11,6 +11,7 @@ class IAppControls
         virtual void clearBoard() = 0;
         virtual void saveState(const char* filename) = 0;
         virtual void loadState(const char* filename) = 0;
+        virtual void changeImplementation(int implIndex) = 0;
 };
 
 #endif //IAPPCONTROLS_H

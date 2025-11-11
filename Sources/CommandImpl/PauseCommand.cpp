@@ -1,8 +1,8 @@
 #include "CommandImpl/PauseCommand.h"
 
-PauseCommand::PauseCommand(IAppControls& controls): m_controls(controls){}
+PauseCommand::PauseCommand(IAppControls& controls): controls_(controls){}
 
 void PauseCommand::execute()
 {
-    m_controls.pause();
+    controls_.pause();
 }

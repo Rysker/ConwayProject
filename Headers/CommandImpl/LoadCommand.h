@@ -6,8 +6,8 @@
 
 class LoadCommand : public ICommand
 {
-    IAppControls& m_controls;
-    const char* m_filenameBuffer;
+    IAppControls& controls_;
+    const char* filenameBuffer_;
 
     public:
         LoadCommand(IAppControls& controls, const char* buffer);

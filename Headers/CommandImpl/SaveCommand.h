@@ -6,8 +6,8 @@
 
 class SaveCommand : public ICommand
 {
-    IAppControls& m_controls;
-    const char* m_filenameBuffer;
+    IAppControls& controls_;
+    const char* filenameBuffer_;
 
     public:
         SaveCommand(IAppControls& controls, const char* buffer);

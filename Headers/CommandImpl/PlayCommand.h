@@ -6,7 +6,7 @@
 
 class PlayCommand : public ICommand
 {
-    IAppControls& m_controls;
+    IAppControls& controls_;
 
     public:
         PlayCommand(IAppControls& controls);

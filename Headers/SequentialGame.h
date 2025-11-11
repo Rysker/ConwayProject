@@ -14,8 +14,8 @@ class SequentialGame : public IConwayAlgorithm
         virtual bool getCellState(int x, int y) const override;
         virtual void setCellState(int x, int y, bool state) override;
         virtual void clearGrid() override;
-        virtual int getWidth() const override { return m_width; }
-        virtual int getHeight() const override { return m_height; }
+        virtual int getWidth() const override { return width_; }
+        virtual int getHeight() const override { return height_; }
 
         virtual bool saveToFile(const std::string& filename) const override;
         virtual bool loadFromFile(const std::string& filename) override;
@@ -23,10 +23,10 @@ class SequentialGame : public IConwayAlgorithm
         virtual const char* getImplementationName() const override { return "Wersja sekwencyjna"; }
 
     private:
-        int m_width;
-        int m_height;
-        std::vector<char> m_currentBuffer;
-        std::vector<char> m_nextBuffer;
+        int width_;
+        int height_;
+        std::vector<char> currentBuffer_;
+        std::vector<char> nextBuffer_;
 
         int getCellIndex(int x, int y) const;
         int countLiveNeighbors(int x, int y) const;

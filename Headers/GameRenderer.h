@@ -14,9 +14,9 @@ class GameRenderer
         void handleInput(IConwayAlgorithm& sim, const AppState& state) const;
 
     private:
-        sf::RenderWindow& m_window;
-        int m_gameWidth;
-        int m_gameHeight;
+        sf::RenderWindow& window_;
+        int gameWidth_;
+        int gameHeight_;
 };
 
 #endif //GAMERENDERER_H

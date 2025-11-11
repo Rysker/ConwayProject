@@ -2,12 +2,12 @@
 #include "imgui.h"
 
 GameRenderer::GameRenderer(sf::RenderWindow& window, int gameWidth, int gameHeight)
-        : m_window(window), m_gameWidth(gameWidth), m_gameHeight(gameHeight) {}
+: window_(window), gameWidth_(gameWidth), gameHeight_(gameHeight) {}
 
 void GameRenderer::draw(const IConwayAlgorithm& sim) const
 {
-    float cellWidth = static_cast<float>(m_gameWidth) / sim.getWidth();
-    float cellHeight = static_cast<float>(m_gameHeight) / sim.getHeight();
+    float cellWidth = static_cast<float>(gameWidth_) / sim.getWidth();
+    float cellHeight = static_cast<float>(gameHeight_) / sim.getHeight();
     sf::VertexArray grid(sf::PrimitiveType::Triangles, sim.getWidth() * sim.getHeight() * 6);
     sf::Color aliveColor = sf::Color::Yellow;
     sf::Color deadColor(30, 30, 30);
@@ -30,7 +30,7 @@ void GameRenderer::draw(const IConwayAlgorithm& sim) const
             for(int i=0; i<6; ++i) grid[v_idx + i].color = color;
         }
     }
-    m_window.draw(grid);
+    window_.draw(grid);
 }
 
 void GameRenderer::handleInput(IConwayAlgorithm& sim, const AppState& state) const
@@ -40,13 +40,14 @@ void GameRenderer::handleInput(IConwayAlgorithm& sim, const AppState& state) con
 
     if (state.isPaused && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
     {
-        sf::Vector2i mousePos = sf::Mouse::getPosition(m_window);
-        if (mousePos.x >= 0 && mousePos.x < m_gameWidth)
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window_);
+        if (mousePos.x >= 0 && mousePos.x < gameWidth_)
         {
-            int cellX = mousePos.x / (m_gameWidth / sim.getWidth());
-            int cellY = mousePos.y / (m_gameHeight / sim.getHeight());
+            int cellX = static_cast<float>(mousePos.x) / gameWidth_ * sim.getWidth();
+            int cellY = static_cast<float>(mousePos.y) / gameHeight_ * sim.getHeight();
             bool cellState = (state.currentTool == TOOL::BRUSH);
             int r = state.brushSize / 2;
+
             for (int y = -r; y <= r; y++)
             {
                 for (int x = -r; x <= r; x++)

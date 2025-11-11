@@ -6,7 +6,7 @@
 
 class ClearCommand : public ICommand
 {
-    IAppControls& m_controls;
+    IAppControls& controls_;
 
     public:
         ClearCommand(IAppControls& controls);
