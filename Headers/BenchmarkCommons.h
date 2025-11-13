@@ -6,7 +6,9 @@
 enum class AlgorithmType
 {
     Sequential,
-    OpenMP
+    OpenMP,
+    MPI,
+	CUDA
 };
 
 struct BoardSize
@@ -29,6 +31,8 @@ inline const char* AlgorithmTypeToString(AlgorithmType type)
     {
         case AlgorithmType::Sequential: return "Sequential";
         case AlgorithmType::OpenMP:     return "OpenMP";
+        case AlgorithmType::MPI:        return "MPI";
+		case AlgorithmType::CUDA:       return "CUDA";
         default:                        return "Unknown";
     }
 }

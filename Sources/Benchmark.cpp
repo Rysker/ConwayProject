@@ -35,7 +35,7 @@ BenchmarkResult Benchmark::runSingleTest(AlgorithmType type, BoardSize size, int
     if (!algorithm->loadFromFile(filename))
     {
         std::cerr << "There is no benchmarking board for given size!\n" << "Terminating program!\n";
-        throw std::runtime_error("Program terminated because board for benchmarking doesnt exist!");
+         throw std::runtime_error("Program terminated because board for benchmarking doesnt exist!");
     }
 
     auto startTime = std::chrono::high_resolution_clock::now();
