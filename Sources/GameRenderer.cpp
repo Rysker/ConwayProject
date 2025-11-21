@@ -1,8 +1,7 @@
 #include "GameRenderer.h"
 #include "imgui.h"
 
-GameRenderer::GameRenderer(sf::RenderWindow& window, int gameWidth, int gameHeight)
-: window_(window), gameWidth_(gameWidth), gameHeight_(gameHeight) {}
+GameRenderer::GameRenderer(sf::RenderWindow& window, int gameWidth, int gameHeight): window_(window), gameWidth_(gameWidth), gameHeight_(gameHeight) {}
 
 void GameRenderer::draw(const IConwayAlgorithm& sim) const
 {

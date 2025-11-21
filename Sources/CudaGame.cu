@@ -44,29 +44,34 @@ __global__ void gameOfLifeKernel(char* d_next, const char* d_curr, int width, in
     int st_x = tx + 1;
     int st_y = ty + 1;
 
-    if (x < width && y < height) 
-    {
+    if (x < width && y < height)
         s_tile[st_y * SH_MEM_DIM + st_x] = d_curr[y * width + x];
-    } 
-    else 
-    {
+
+    else
         s_tile[st_y * SH_MEM_DIM + st_x] = 0;
-    }
 
     int x_left = (x - 1 + width) % width;
     int x_right = (x + 1) % width;
     int y_up = (y - 1 + height) % height;
     int y_down = (y + 1) % height;
 
-    if (tx == 0 && ty == 0) s_tile[0 * SH_MEM_DIM + 0] = d_curr[y_up * width + x_left];
-    if (tx == TILE_DIM-1 && ty == 0) s_tile[0 * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y_up * width + x_right];
-    if (tx == 0 && ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + 0] = d_curr[y_down * width + x_left];
-    if (tx == TILE_DIM-1 && ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y_down * width + x_right];
+    if (tx == 0 && ty == 0)
+        s_tile[0 * SH_MEM_DIM + 0] = d_curr[y_up * width + x_left];
+    if (tx == TILE_DIM-1 && ty == 0)
+        s_tile[0 * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y_up * width + x_right];
+    if (tx == 0 && ty == TILE_DIM-1)
+        s_tile[(TILE_DIM+1) * SH_MEM_DIM + 0] = d_curr[y_down * width + x_left];
+    if (tx == TILE_DIM-1 && ty == TILE_DIM-1)
+        s_tile[(TILE_DIM+1) * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y_down * width + x_right];
     
-    if (tx == 0) s_tile[st_y * SH_MEM_DIM + 0] = d_curr[y * width + x_left];
-    if (tx == TILE_DIM-1) s_tile[st_y * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y * width + x_right];
-    if (ty == 0) s_tile[0 * SH_MEM_DIM + st_x] = d_curr[y_up * width + x];
-    if (ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + st_x] = d_curr[y_down * width + x];
+    if (tx == 0)
+        s_tile[st_y * SH_MEM_DIM + 0] = d_curr[y * width + x_left];
+    if (tx == TILE_DIM-1)
+        s_tile[st_y * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y * width + x_right];
+    if (ty == 0)
+        s_tile[0 * SH_MEM_DIM + st_x] = d_curr[y_up * width + x];
+    if (ty == TILE_DIM-1)
+        s_tile[(TILE_DIM+1) * SH_MEM_DIM + st_x] = d_curr[y_down * width + x];
 
     __syncthreads();
 
@@ -75,25 +80,19 @@ __global__ void gameOfLifeKernel(char* d_next, const char* d_curr, int width, in
         int liveNeighbors = countLiveNeighborsGpu(s_tile, st_x, st_y);
         bool isAlive = s_tile[st_y * SH_MEM_DIM + st_x];
 
-        if (!isAlive && liveNeighbors == 3) 
-        {
+        if (!isAlive && liveNeighbors == 3)
             d_next[y * width + x] = 1;
-        } 
-        else if (isAlive && (liveNeighbors == 2 || liveNeighbors == 3)) 
-        {
+        else if (isAlive && (liveNeighbors == 2 || liveNeighbors == 3))
             d_next[y * width + x] = 1;
-        } 
-        else 
-        {
+        else
             d_next[y * width + x] = 0;
-        }
+
     }
 }
 
 
 
-CudaGame::CudaGame(int width, int height)
-    : width_(width), height_(height), isHostBufferDirty_(true) 
+CudaGame::CudaGame(int width, int height): width_(width), height_(height), isHostBufferDirty_(true)
 {
     dataSize_ = width_ * height_ * sizeof(char);
     
@@ -153,18 +152,19 @@ void CudaGame::copyHostToGpu(const std::vector<char>& hostBuffer)
 
 bool CudaGame::getCellState(int x, int y) const 
 {
-    if (isHostBufferDirty_) 
-    {
+    if (isHostBufferDirty_)
         copyGpuToHost();
-    }
-    
-    if (x < 0 || x >= width_ || y < 0 || y >= height_) return false;
+
+    if (x < 0 || x >= width_ || y < 0 || y >= height_)
+        return false;
+
     return h_renderBuffer_[y * width_ + x];
 }
 
 void CudaGame::setCellState(int x, int y, bool state) 
 {
-    if (x < 0 || x >= width_ || y < 0 || y >= height_) return;
+    if (x < 0 || x >= width_ || y < 0 || y >= height_)
+        return;
     
     h_renderBuffer_[y * width_ + x] = state ? 1 : 0;
     
@@ -185,19 +185,17 @@ void CudaGame::clearGrid()
 
 bool CudaGame::saveToFile(const std::string& filename) const 
 {
-    if (isHostBufferDirty_) 
-    {
+    if (isHostBufferDirty_)
         copyGpuToHost();
-    }
     
     std::ofstream file(filename);
-    if (!file.is_open()) return false;
+    if (!file.is_open())
+        return false;
+
     for (int y = 0; y < height_; y++) 
     {
-        for (int x = 0; x < width_; x++) 
-        {
+        for (int x = 0; x < width_; x++)
             file << (h_renderBuffer_[y * width_ + x] ? 'O' : '.');
-        }
         file << '\n';
     }
     return true;
@@ -206,22 +204,25 @@ bool CudaGame::saveToFile(const std::string& filename) const
 bool CudaGame::loadFromFile(const std::string& filename) 
 {
     std::ifstream file(filename);
-    if (!file.is_open()) return false;
+    if (!file.is_open())
+        return false;
     
-    clearGrid(); // Czyœci te¿ bufor CPU (h_renderBuffer_)
+    clearGrid();
     std::fill(h_renderBuffer_.begin(), h_renderBuffer_.end(), 0);
 
     std::string line;
     for (int y = 0; y < height_; y++) 
     {
-        if (!std::getline(file, line)) break;
+        if (!std::getline(file, line))
+            break;
+
         for (int x = 0; x < width_; x++) 
         {
-            if (x >= line.length()) break;
-            if (line[x] == 'O' || line[x] == '1') 
-            {
+            if (x >= line.length())
+                break;
+
+            if (line[x] == 'O' || line[x] == '1')
                 h_renderBuffer_[y * width_ + x] = 1;
-            }
         }
     }
     
