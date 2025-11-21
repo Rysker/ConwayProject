@@ -1,11 +1,16 @@
 #include <iostream>
 #include <vector>
-#include <mpi.h> // NAG£ÓWEK MPI
+#include <mpi.h>
 #include "Benchmark.h"
 #include "BenchmarkCommons.h"
 
 int main(int argc, char* argv[])
 {
+    MPI_Init(&argc, &argv);
+    int rank, worldSize;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+
     std::vector<AlgorithmType> typesToTest = {
         AlgorithmType::Sequential,
         AlgorithmType::OpenMP,
@@ -19,73 +24,54 @@ int main(int argc, char* argv[])
         { 2048, 2048 }
     };
 
-	int generations = 1000;
+    int generations = 1000;
 
     Benchmark runner;
     std::vector<BenchmarkResult> allResults;
 
-    std::cout << "Starting Conway's Game of Life Benchmark..." << std::endl;
-
-    for (const auto& type : typesToTest)
+    if (worldSize == 1)
     {
-        int rank = 0;
-        int worldSize = 1;
+        std::cout << "Sequential, OpenMP and CUDA benchmarks" << std::endl;
+        std::vector<AlgorithmType> types = {
+                AlgorithmType::Sequential,
+                AlgorithmType::OpenMP,
+                AlgorithmType::CUDA
+        };
+        allResults = runner.run(types, sizesToTest, generations);
+    }
 
-        std::vector<AlgorithmType> currentTestType = { type };
+    else
+    {
+        if (rank == 0)
+            std::cout << "MPI Benchmark" << std::endl;
 
-        if (type == AlgorithmType::MPI)
-        {
-            MPI_Init(&argc, &argv);
-            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-            MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+        std::vector<AlgorithmType> mpiType = { AlgorithmType::MPI };
 
-            if (rank == 0)
-            {
-                std::cout << "\n--- Starting MPI Benchmark ---" << std::endl;
-            }
-        }
-        else
-        {
-            if (rank == 0)
-            {
-                std::cout << "\n--- Starting "
-
-                    << (type == AlgorithmType::Sequential ? "Sequential"
-                        : (type == AlgorithmType::OpenMP ? "OpenMP" : "CUDA"))
-                    << " Benchmark ---" << std::endl;
-            }
-        }
-
-
-        std::vector<BenchmarkResult> currentResults;
+        std::vector<BenchmarkResult> mpiResults = runner.run(mpiType, sizesToTest, generations);
 
         if (rank == 0)
-        {
-            currentResults = runner.run(currentTestType, sizesToTest, generations);
-
-            allResults.insert(allResults.end(), currentResults.begin(), currentResults.end());
-        }
-        else
-        {
-            runner.run(currentTestType, sizesToTest, generations);
-        }
-
-        if (type == AlgorithmType::MPI)
-        {
-            MPI_Finalize();
-        }
+            allResults = mpiResults;
     }
 
-    std::cout << "\n--- FINAL REPORT ---" << std::endl;
-    for (const auto& res : allResults)
+    if (rank == 0)
     {
-        if (res.totalTimeMs > 0)
+        std::cout << "\n--- FINAL REPORT ---" << std::endl;
+        for (const auto& res : allResults)
         {
-            std::cout << "[" << res.algorithmType << "]\t"
-                << res.size.width << "x" << res.size.height << "\t"
-                << "Total: " << res.totalTimeMs << " ms" << std::endl;
+            if (res.totalTimeMs > 0)
+            {
+                std::cout << "[" << res.algorithmType << "]\t"
+                    << res.size.width << "x" << res.size.height << "\t"
+                    << "Total: " << res.totalTimeMs << " ms" << std::endl;
+            }
+        }
+
+        if (worldSize == 1)
+        {
         }
     }
+
+    MPI_Finalize();
 
     return 0;
 }

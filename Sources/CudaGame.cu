@@ -50,7 +50,7 @@ __global__ void gameOfLifeKernel(char* d_next, const char* d_curr, int width, in
     } 
     else 
     {
-        s_tile[st_y * SH_MEM_DIM + st_x] = 0; // Wype³nij zerami poza plansz¹
+        s_tile[st_y * SH_MEM_DIM + st_x] = 0;
     }
 
     int x_left = (x - 1 + width) % width;
@@ -58,22 +58,22 @@ __global__ void gameOfLifeKernel(char* d_next, const char* d_curr, int width, in
     int y_up = (y - 1 + height) % height;
     int y_down = (y + 1) % height;
 
-    if (tx == 0 && ty == 0) s_tile[0 * SH_MEM_DIM + 0] = d_curr[y_up * width + x_left]; // lewy-górny
-    if (tx == TILE_DIM-1 && ty == 0) s_tile[0 * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y_up * width + x_right]; // prawy-górny
-    if (tx == 0 && ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + 0] = d_curr[y_down * width + x_left]; // lewy-dolny
-    if (tx == TILE_DIM-1 && ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y_down * width + x_right]; // prawy-dolny
+    if (tx == 0 && ty == 0) s_tile[0 * SH_MEM_DIM + 0] = d_curr[y_up * width + x_left];
+    if (tx == TILE_DIM-1 && ty == 0) s_tile[0 * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y_up * width + x_right];
+    if (tx == 0 && ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + 0] = d_curr[y_down * width + x_left];
+    if (tx == TILE_DIM-1 && ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y_down * width + x_right];
     
-    if (tx == 0) s_tile[st_y * SH_MEM_DIM + 0] = d_curr[y * width + x_left]; // lewa
-    if (tx == TILE_DIM-1) s_tile[st_y * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y * width + x_right]; // prawa
-    if (ty == 0) s_tile[0 * SH_MEM_DIM + st_x] = d_curr[y_up * width + x]; // górna
-    if (ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + st_x] = d_curr[y_down * width + x]; // dolna
+    if (tx == 0) s_tile[st_y * SH_MEM_DIM + 0] = d_curr[y * width + x_left];
+    if (tx == TILE_DIM-1) s_tile[st_y * SH_MEM_DIM + (TILE_DIM+1)] = d_curr[y * width + x_right];
+    if (ty == 0) s_tile[0 * SH_MEM_DIM + st_x] = d_curr[y_up * width + x];
+    if (ty == TILE_DIM-1) s_tile[(TILE_DIM+1) * SH_MEM_DIM + st_x] = d_curr[y_down * width + x];
 
     __syncthreads();
 
     if (x < width && y < height) 
     {
         int liveNeighbors = countLiveNeighborsGpu(s_tile, st_x, st_y);
-        bool isAlive = s_tile[st_y * SH_MEM_DIM + st_x]; // Stan obecny
+        bool isAlive = s_tile[st_y * SH_MEM_DIM + st_x];
 
         if (!isAlive && liveNeighbors == 3) 
         {
