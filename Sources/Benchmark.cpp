@@ -29,7 +29,7 @@ BenchmarkResult Benchmark::runSingleTest(AlgorithmType type, BoardSize size, int
         return { AlgorithmTypeToString(type), size, generations, -1.0};
 
     std::ostringstream filenameStream;
-    filenameStream << "benchmark_" << size.width << "x" << size.height << ".txt";
+    filenameStream << "../../benchmark_" << size.width << "x" << size.height << ".txt";
     std::string filename = filenameStream.str();
 
     if (!algorithm->loadFromFile(filename))

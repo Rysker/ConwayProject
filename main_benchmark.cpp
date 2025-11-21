@@ -65,10 +65,6 @@ int main(int argc, char* argv[])
                     << "Total: " << res.totalTimeMs << " ms" << std::endl;
             }
         }
-
-        if (worldSize == 1)
-        {
-        }
     }
 
     MPI_Finalize();
